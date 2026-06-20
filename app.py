@@ -95,7 +95,7 @@ if 'stations' not in st.session_state:
         "الساحات الخارجية والمنحدرات": {"المستوى": 65, "النوع": "عربات الإمداد الترددي", "الحشود": "مستقر", "lat": 21.4215, "lon": 39.8250}
     }
 
-# صمام أمان لضمان مطابقة الصفحة النشطة الافتراضية مع عناصر القائمة الجديدة
+# صمام أمان لضمان مطابقة الصفحة النشطة الافتراضية مع عناصر القائمة
 if 'active_page' not in st.session_state or st.session_state.active_page not in options:
     st.session_state.active_page = "الرئيسية "
 
@@ -105,7 +105,6 @@ def set_page(page_name):
 
 # 6. البوابة الجانبية للتحكم المركزي
 with st.sidebar:
-    # إظهار الصورة في أعلى القائمة الجانبية كشعار رسمي من امتداد webp المعتمد لديك
     try:
         st.image("harem.webp", use_container_width=True)
     except:
@@ -115,7 +114,6 @@ with st.sidebar:
     st.markdown("<p style='text-align: center; font-size: 13px; opacity: 0.8;'>إدارة عمليات السقيا بالذكاء الاصطناعي</p>", unsafe_allow_html=True)
     st.write("---")
     
-    # استدعاء الفهرس الآمن بعد المزامنة
     sidebar_selection = st.radio(
         "نطاق العمليات:", 
         options, 
@@ -141,7 +139,6 @@ def render_home_button():
 if st.session_state.active_page == "الرئيسية ":
     st.title("منصة رِواء الرقمية")
     
-    # عرض الصورة كخلفية رئيسية ترحيبية للمحكمين
     try:
         st.image("harem.webp", use_container_width=True, caption="المسجد الحرام - مكة المكرمة")
     except:
@@ -210,7 +207,7 @@ elif st.session_state.active_page == "لوحة المراقبة الجغرافي
         """)
     render_home_button()
 
-# --- الشاشة الثالثة: المسارات الإرشادية ---
+# --- الشاشة الثالثة: المسارات الإرشادية (تم إصلاح الخريطة هنا) ---
 elif st.session_state.active_page == "المسارات الإرشادية":
     st.title("نظام التوجيه والملاحة الإرشادية للزوار")
     st.write("---")
@@ -224,8 +221,9 @@ elif st.session_state.active_page == "المسارات الإرشادية":
     if st.button("توليد مسار الملاحة الرقمي الموصى به"):
         st.success("تمت المعالجة الجغرافية للموقع بنجاح. تم تحديد أقصر مسار متاح متصل بنقاط الوفرة المائية.")
         
-        map_data = [{"النطاق الجغرافي": k, "lat": v["lat"], "lon": v["lon"], "المخزون": v["المستوى"]*4} for k, v in st.session_state.stations.items()]
-        st.map(pd.DataFrame(map_data), latitude="lat", longitude="lon", size="المخزون", zoom=16)
+        # تصحيح حجم الدوائر البرمجية بقسمتها على 40 لتبدو نقاطاً دقيقة ومثالية وموزعة داخل الحرم بنجاح
+        map_data = [{"النطاق الجغرافي": k, "lat": v["lat"], "lon": v["lon"], "المخزون": v["المستوى"] / 40} for k, v in st.session_state.stations.items()]
+        st.map(pd.DataFrame(map_data), latitude="lat", longitude="lon", size="المخزون", zoom=17)
         
         st.markdown("""
         <div class="route-box">
