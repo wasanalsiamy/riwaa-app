@@ -9,7 +9,7 @@ st.set_page_config(
     layout="wide"
 )
 
-# 2. هندسة المظهر البصري لغرف التحكم (تباين عالي، خلفيات بيج مريحة، نصوص سوداء صريحة)
+# 2. هندسة المظهر البصري لغرف التحكم (ألوان متناسقة، تباين لوني مريح، وهوية بصرية موحدة)
 st.markdown("""
     <style>
     /* الخلفية العامة للمنصة */
@@ -54,13 +54,13 @@ st.markdown("""
     
     /* بطاقات مؤشرات المراقبة اللحظية */
     .station-card {
-        padding: 20px;
-        border-radius: 10px;
+        padding: 22px;
+        border-radius: 12px;
         text-align: center;
         color: #FFFFFF !important;
         font-weight: bold;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-        margin-bottom: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        margin-bottom: 15px;
     }
     .station-green { background-color: #2E7D32; border-right: 6px solid #1B5E20; }
     .station-red { background-color: #C62828; border-right: 6px solid #B71C1C; }
@@ -86,16 +86,18 @@ options = [
     "معالجة الاستعلامات والتقارير"
 ]
 
-# 4. إدارة الحالة والذاكرة المؤقتة لقواعد البيانات الافتراضية
+# 4. إدارة الحالة والذاكرة المؤقتة لقواعد البيانات - (تم التوسيع لتشمل 6 مواقع جغرافية لتعبئة الخريطة)
 if 'stations' not in st.session_state:
     st.session_state.stations = {
         "صحن المطاف والأروقة": {"المستوى": 95, "النوع": "حافظات نمطية معقمة", "الحشود": "مستقر", "lat": 21.4225, "lon": 39.8262},
         "المسعى بجميع أدواره": {"المستوى": 80, "النوع": "مشربيات رقمية مطورة", "الحشود": "متوسط الكثافة", "lat": 21.4230, "lon": 39.8270},
         "التوسعة السعودية الثالثة": {"المستوى": 12, "النوع": "حافظات نمطية معقمة", "الحشود": "ذروة حادة", "lat": 21.4240, "lon": 39.8255},
-        "الساحات الخارجية والمنحدرات": {"المستوى": 65, "النوع": "عربات الإمداد الترددي", "الحشود": "مستقر", "lat": 21.4215, "lon": 39.8250}
+        "الساحات الخارجية والمنحدرات": {"المستوى": 65, "النوع": "عربات الإمداد الترددي", "الحشود": "مستقر", "lat": 21.4215, "lon": 39.8250},
+        "مشربيات باب الفتح": {"المستوى": 88, "النوع": "مشربيات رقمية مطورة", "الحشود": "مستقر", "lat": 21.4235, "lon": 39.8260},
+        "بدروم التوسعة الثانية": {"المستوى": 18, "النوع": "حافظات نمطية معقمة", "الحشود": "كثافة مرتفعة", "lat": 21.4220, "lon": 39.8245}
     }
 
-# صمام أمان لضمان مطابقة الصفحة النشطة الافتراضية مع عناصر القائمة
+# صمام أمان لضمان مطابقة الصفحة النشطة مع عناصر القائمة
 if 'active_page' not in st.session_state or st.session_state.active_page not in options:
     st.session_state.active_page = "الرئيسية "
 
@@ -169,45 +171,56 @@ elif st.session_state.active_page == "لوحة المراقبة الجغرافي
     st.write("---")
     
     st.subheader("مؤشرات الطاقة الاستيعابية والامتلاء الحالية")
-    cols = st.columns(4)
+    
+    # توزيع المحطات الستة بشكل متناسق في شبكة (Grid) من الأسطر والأعمدة
+    cols_row1 = st.columns(3)
+    cols_row2 = st.columns(3)
+    all_cols = cols_row1 + cols_row2
+    
     for i, (name, info) in enumerate(st.session_state.stations.items()):
         level = info["المستوى"]
         color_class = "station-green" if level > 20 else "station-red"
         status_text = "كفاية تامة" if level > 20 else "إنذار عجز تشغيلي وشيك"
         
-        with cols[i]:
+        with all_cols[i]:
             st.markdown(f"""
                 <div class="station-card {color_class}">
-                    <div style="font-size: 16px; margin-bottom: 8px; color: #FFFFFF !important;">{name}</div>
+                    <div style="font-size: 15px; margin-bottom: 8px; color: #FFFFFF !important;">{name}</div>
                     <div style="font-size: 34px; font-weight: bold; color: #FFFFFF !important;">{level}%</div>
                     <div style="font-size: 12px; opacity: 0.9; color: #FFFFFF !important; font-weight: normal;">{status_text}</div>
                 </div>
                 """, unsafe_allow_html=True)
             
-            if st.button("عرض تقرير الكثافة", key=f"det_{i}"):
-                st.info(f"النمط الفني: {info['النوع']} | مستوى الحشود في النطاق: {info['الحشود']}")
+            if st.button("عرض تقرير الكثافة والنوع", key=f"det_{i}"):
+                st.info(f"النمط التشغيلي: {info['النوع']} | مستوى الحشود الحالي: {info['الحشود']}")
 
     st.write("---")
     col_graph, col_summary = st.columns([2, 1])
     with col_graph:
-        st.subheader("المنحنى التنبؤي لحجم الطلب المتوقع (خلال الـ 60 دقيقة القادمة)")
-        df_chart = pd.DataFrame({'الفترة الزمنية': ['أذان', 'الإقامة', 'الصلوات', 'خروج التدفقات'], 'معدل الطلب (%)': [35, 55, 95, 70]})
+        st.subheader("المنحنى التنبؤي لنسب الاستهلاك المتوقعة (خلال الساعات القادمة)")
+        df_chart = pd.DataFrame({
+            'الفترة الزمنية': ['أذان', 'الإقامة', 'الصلوات', 'خروج التدفقات', 'الهدوء النسبي'], 
+            'معدل الطلب (%)': [35, 55, 95, 70, 30]
+        })
         fig = px.area(df_chart, x='الفترة الزمنية', y='معدل الطلب (%)')
-        fig.update_traces(line_color='#8B7355', fillcolor='rgba(139, 115, 85, 0.12)')
+        fig.update_traces(line_color='#8B7355', fillcolor='rgba(139, 115, 85, 0.15)')
         fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', margin=dict(l=0, r=0, t=10, b=0))
         st.plotly_chart(fig, use_container_width=True)
         
     with col_summary:
-        st.subheader("المحددات التشغيلية الحيوية")
-        st.markdown("""
-        * رصد كثافة الحشود اللحظية عبر الكاميرات الرقمية.
-        * ربط جدول التوقيت التلقائي لمواعيد الصلوات.
-        * تتبع قراءات المستشعرات البيئية والحرارية.
-        * مطابقة الأنماط التاريخية لمعدلات الاستهلاك اليومية.
-        """)
+        st.subheader("توزيع العمالة التشغيلية الميدانية آلياً")
+        # إضافة رسمة بيانية دائرية احترافية لتوضيح توزيع الفرق
+        df_pie = pd.DataFrame({
+            'النطاق': ['المطاف', 'المسعى', 'التوسعة الثالثة', 'الساحات'],
+            'الفرق الميدانية': [40, 25, 20, 15]
+        })
+        fig_pie = px.pie(df_pie, values='الفرق الميدانية', names='النطاق', color_discrete_sequence=['#3E332A', '#8B7355', '#DDC7A0', '#A89474'])
+        fig_pie.update_layout(margin=dict(l=0, r=0, t=10, b=0), showlegend=True)
+        st.plotly_chart(fig_pie, use_container_width=True)
+        
     render_home_button()
 
-# --- الشاشة الثالثة: المسارات الإرشادية (تم إصلاح الخريطة هنا) ---
+# --- الشاشة الثالثة: المسارات الإرشادية ---
 elif st.session_state.active_page == "المسارات الإرشادية":
     st.title("نظام التوجيه والملاحة الإرشادية للزوار")
     st.write("---")
@@ -219,10 +232,10 @@ elif st.session_state.active_page == "المسارات الإرشادية":
         st.selectbox("نقطة قياس التدفق والوصول الحالية:", ["بوابة الملك عبدالعزيز", "بوابة الملك فهد", "بوابة الفتح"])
         
     if st.button("توليد مسار الملاحة الرقمي الموصى به"):
-        st.success("تمت المعالجة الجغرافية للموقع بنجاح. تم تحديد أقصر مسار متاح متصل بنقاط الوفرة المائية.")
+        st.success("تمت المعالجة الجغرافية للموقع بنجاح. تم تحديد نقاط الوفرة المائية وتنسيق المسارات المقترحة.")
         
-        # تصحيح حجم الدوائر البرمجية بقسمتها على 40 لتبدو نقاطاً دقيقة ومثالية وموزعة داخل الحرم بنجاح
-        map_data = [{"النطاق الجغرافي": k, "lat": v["lat"], "lon": v["lon"], "المخزون": v["المستوى"] / 40} for k, v in st.session_state.stations.items()]
+        # تقسيم قيمة المخزون على 45 لضبط حجم الدوائر لتظهر كنقاط توزيع حقيقية ممتازة ودقيقة جداً
+        map_data = [{"النطاق الجغرافي": k, "lat": v["lat"], "lon": v["lon"], "المخزون": v["المستوى"] / 45} for k, v in st.session_state.stations.items()]
         st.map(pd.DataFrame(map_data), latitude="lat", longitude="lon", size="المخزون", zoom=17)
         
         st.markdown("""
@@ -238,15 +251,24 @@ elif st.session_state.active_page == "المسارات الإرشادية":
 elif st.session_state.active_page == "مركز إدارة التعبئة والإرسال الميداني":
     st.title("لوحة قيادة وتحريك الكوادر التشغيلية")
     st.write("---")
-    st.error("إنذار تنبؤي: يرجى اتخاذ الإجراء الاستباقي قبل نفاد المخزون المائي في التوسعة السعودية الثالثة (المتبقي الحالي 12%).")
     
-    if st.button("اعتماد أمر الإسناد وتنبيه الفرق الميدانية"):
-        st.success("تم تفعيل إرسال أمر التزويد الرقمي للأجهزة المحمولة الخاصة بالفرقة الميدانية المكلفة جغرافياً بالنطاق.")
-        
-    if st.button("محاكاة اكتمال الإمداد الميداني"):
-        st.session_state.stations["التوسعة السعودية الثالثة"]["المستوى"] = 100
-        st.session_state.stations["التوسعة السعودية الثالثة"]["الحشود"] = "مستقر"
-        st.success("تم تحديث البيانات الرقمية بنجاح. عاد مؤشر الطاقة الاستيعابية في التوسعة السعودية الثالثة إلى وضع الأمان الكلي بنسبة 100%.")
+    # إظهار التنبيهات للنقاط المتأثرة
+    st.error("إنذار تنبؤي أول: يرجى اتخاذ الإجراء الاستباقي قبل نفاد المخزون المائي في التوسعة السعودية الثالثة (المتبقي الحالي 12%).")
+    st.error("إنذار تنبؤي ثانٍ: مستوى الامتلاء في بدروم التوسعة الثانية منخفض جداً (المتبقي الحالي 18%).")
+    
+    col_actions = st.columns(2)
+    with col_actions[0]:
+        if st.button("اعتماد أمر الإسناد وتنبيه الفرق الميدانية"):
+            st.success("تم تفعيل إرسال أمر التزويد الرقمي للأجهزة المحمولة الخاصة بالفرقة الميدانية المكلفة جغرافياً.")
+            
+    with col_actions[1]:
+        if st.button("محاكاة اكتمال الإمداد الميداني للأزمات"):
+            st.session_state.stations["التوسعة السعودية الثالثة"]["المستوى"] = 100
+            st.session_state.stations["التوسعة السعودية الثالثة"]["الحشود"] = "مستقر"
+            st.session_state.stations["بدروم التوسعة الثانية"]["المستوى"] = 90
+            st.session_state.stations["بدروم التوسعة الثانية"]["الحشود"] = "مستقر"
+            st.success("تم تحديث البيانات الرقمية بنجاح. عادت مؤشرات كافة المواقع التشغيلية إلى وضع الأمان الكلي.")
+            
     render_home_button()
 
 # --- الشاشة الخامسة: معالجة الاستعلامات والتقارير ---
@@ -259,7 +281,7 @@ elif st.session_state.active_page == "معالجة الاستعلامات وال
         st.markdown("<div style='background-color: #3E332A; padding: 15px; border-radius: 6px; color: #FFFFFF;'><strong>التوجيه التحليلي الصادر عن النظام:</strong> تشير النمذجة التنبؤية لحساب الحشود الحالية إلى توقع ارتفاع الطلب المائي بنسبة 45% في نطاق صحن المطاف فور الانتهاء من أداء الصلاة مباشرة، يوصى بجدولة عربات الدعم الترددي مسبقاً.</div>", unsafe_allow_html=True)
         
     st.write("---")
-    st.subheader("مؤشرات الأداء الاستراتيجية")
+    st.subheader("مؤشرات الأداء الاستراتيجية للمنظومة")
     c1, c2, c3 = st.columns(3)
     c1.metric("معدل استمرارية وفرة الخدمة", "99.9%", "مستهدف مستدام")
     c2.metric("تقليل زمن الاستجابة للمهمات", "40%-", "تحسين كفاءة التشغيل")
