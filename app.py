@@ -2,129 +2,244 @@ import streamlit as st
 import pandas as pd
 import plotly.express as px
 
-# 1. إعدادات الهوية الرسمية
-st.set_page_config(page_title="منظومة رِواء الوطنية", page_icon="🕋", layout="wide")
+# 1. إعداد بروتوكول الهوية الرقمية للمنصة
+st.set_page_config(page_title="منظومة رِواء الرقمية - الهيئة العامة للعناية بشؤون المسجد الحرام", page_icon="🕋", layout="wide")
 
-# 2. هندسة المظهر البصري (بيج رخامي وبني خشبي)
+# 2. هندسة المظهر البصري والسياسة الجمالية للمنصة (البيج الرخامي الملكي والبني النبوي الخشبي)
 st.markdown("""
     <style>
-    .stApp { background-color: #FDFBF7; color: #1A1A1A; }
-    [data-testid="stSidebar"] { background-color: #3E332A; }
-    [data-testid="stSidebar"] * { color: #FFFFFF !important; }
-    h1, h2, h3, h4, p, span, label { color: #1A1A1A !important; font-family: 'Arial', sans-serif; }
-    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] label { color: #FFFFFF !important; }
-    .stMetric { background-color: #FFFFFF; padding: 20px; border-radius: 12px; border-right: 6px solid #8B7355; box-shadow: 0 4px 12px rgba(0,0,0,0.02); }
-    .stButton>button { background-color: #3E332A; color: #FFFFFF !important; border-radius: 6px; padding: 12px 30px; font-weight: bold; width: 100%; transition: 0.3s; }
-    .stButton>button:hover { background-color: #8B7355; }
+    /* خلفية رخامية مريحة ومقاومة للتشتت البصري */
+    .stApp {
+        background-color: #FDFBF7;
+        color: #1A1A1A;
+    }
     
-    /* تنسيق الحافظات (علب زمزم) */
-    .container-box {
-        padding: 20px;
+    /* الهوية البصرية للبوابة الجانبية */
+    [data-testid="stSidebar"] {
+        background-color: #3E332A;
+    }
+    [data-testid="stSidebar"] * {
+        color: #FFFFFF !important;
+    }
+    
+    /* ضبط معايير الخطوط والتباين العالي للنصوص الصريحة */
+    h1, h2, h3, h4, p, span, label {
+        color: #1A1A1A !important;
+        font-family: 'Arial', sans-serif;
+    }
+    
+    [data-testid="stSidebar"] h1, [data-testid="stSidebar"] h2, [data-testid="stSidebar"] label {
+        color: #FFFFFF !important;
+    }
+
+    /* أزرار الإجراءات التنفيذية والاعتماد */
+    .stButton>button {
+        background-color: #3E332A;
+        color: #FFFFFF !important;
+        border-radius: 8px;
+        border: none;
+        padding: 14px 22px;
+        font-weight: bold;
+        width: 100%;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        transition: 0.3s;
+    }
+    .stButton>button:hover {
+        background-color: #8B7355;
+        color: #FFFFFF !important;
+    }
+    
+    /* بطاقات المراقبة الجغرافية لنقاط السقيا */
+    .station-card {
+        padding: 25px;
         border-radius: 15px;
         text-align: center;
-        color: white !important;
+        color: #FFFFFF !important;
         font-weight: bold;
-        margin-bottom: 10px;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        box-shadow: 0 6px 15px rgba(0,0,0,0.06);
+        margin-bottom: 15px;
     }
-    .status-green { background-color: #2E7D32; } /* أخضر: متوفر */
-    .status-red { background-color: #C62828; }   /* أحمر: إنذار بنفاد المياه */
+    .station-green { background-color: #2E7D32; border-right: 8px solid #1B5E20; } /* كفاية الإمداد */
+    .station-red { background-color: #C62828; border-right: 8px solid #B71C1C; }   /* عجز تشغيلي وشيك */
+    
+    /* بطاقة النظام للمسارات التوجيهية */
+    .route-box {
+        background-color: #FFFFFF;
+        border-right: 8px solid #8B7355;
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+        margin-top: 15px;
+    }
     </style>
     """, unsafe_allow_html=True)
 
-# 3. إدارة البيانات
-if 'water_levels' not in st.session_state:
-    st.session_state.water_levels = {"أروقة المطاف": 85, "المسعى الأرضي": 45, "توسعة الملك فهد": 12, "الساحات الخارجية": 70}
-if 'active_tasks' not in st.session_state:
-    st.session_state.active_tasks = []
+# 3. طبقة إدارة البيانات الجغرافية والتشغيلية الموحدة
+if 'stations' not in st.session_state:
+    st.session_state.stations = {
+        "صحن المطاف والأروقة المحيطة": {"المستوى": 95, "النوع": "حافظات نمطية معقمة", "الحشود": "آمن / مستقر"},
+        "المسعى بجميع أدواره": {"المستوى": 80, "النوع": "مشربيات رقمية مطورة", "الحشود": "متوسط الكثافة"},
+        "التوسعة السعودية الثالثة": {"المستوى": 12, "النوع": "حافظات نمطية معقمة", "الحشود": "ذروة تشغيلية حادة"},
+        "الساحات والمنحدرات الخارجية": {"المستوى": 65, "النوع": "عربات الإمداد الترددي", "الحشود": "آمن / مستقر"}
+    }
+if 'active_logs' not in st.session_state:
+    st.session_state.active_logs = []
 
-# 4. القائمة الجانبية
+# 4. بوابة المؤشرات الرقمية والتحكم (القائمة الجانبية الإدارية)
 with st.sidebar:
-    st.markdown("<h1 style='text-align: center; font-size: 28px; font-weight: bold;'>منظومة رِواء</h1>", unsafe_allow_html=True)
+    st.markdown("<h1 style='text-align: center; font-size: 26px; font-weight: bold;'>منظومة رِواء الرقمية</h1>", unsafe_allow_html=True)
+    st.markdown("<p style='text-align: center; font-size: 13px; opacity: 0.8;'>النظام الموحد لدعم القرار التنبؤي بسقيا زمزم</p>", unsafe_allow_html=True)
     st.write("---")
-    page = st.radio("أقسام المنصة:", ["التعريف بالمنظومة", "مركز العمليات والتنبؤ اللحظي", "نظام دعم القرار والتوجيه", "تطبيق الكوادر الميدانية", "مؤشرات الأثر 2030"])
+    page = st.radio("بوابة التحكم ونظم العمليات:", [
+        "لوحة المراقبة الحية والتحليل التنبؤي",
+        "محاكي التوجيه الإرشادي الذكي للزوار",
+        "لوحة دعم القرار والتحريك الاستباقي",
+        "بوابة الاستعلام التنفيذي والإحصاء"
+    ])
     st.write("---")
-    st.caption("هاكاثون جادة 30 - مكة المكرمة")
+    st.caption("بروتوكول تشغيل الذكاء الاصطناعي وإدارة الحشود")
 
-# --- 1. التعريف بالمنظومة ---
-if page == "التعريف بالمنظومة":
-    st.title("منظومة رِواء الرقمية")
-    st.markdown("#### الحل الوطني الذكي لأتمتة ورفع كفاءة عمليات السقيا داخل الحرم المكي الشريف")
-    st.write("---")
-    st.subheader("رؤية المنصة")
-    st.write("""
-    منصة **رِواء** تهدف إلى إلغاء العمليات اليدوية في مراقبة مستويات مياه زمزم. من خلال تحليل 8 عوامل حيوية تشمل كثافة الحشود ودرجات الحرارة، يتنبأ النظام بحاجة كل نقطة توزيع للمياه قبل نفادها، مما يمنع التكدس البشري ويضمن استمرارية الخدمة لضيوف الرحمن.
-    """)
-    st.info("فلسفة رِواء: التواجد المسبق في المكان الصحيح قبل طلب الخدمة.")
-
-# --- 2. مركز العمليات والتنبؤ اللحظي ---
-elif page == "مركز العمليات والتنبؤ اللحظي":
-    st.title("لوحة تحكم مركز العمليات")
-    st.write("متابعة حية لحالة نقاط التوزيع (الحافظات والمشربيات) في كافة أروقة الحرم.")
+# --- الشاشة الأولى: لوحة المراقبة الحية والتحليل التنبؤي ---
+if page == "لوحة المراقبة الحية والتحليل التنبؤي":
+    st.title("لوحة المراقبة الجغرافية اللحظية لمخزون مياه زمزم")
+    st.write("المتابعة الحية لمستويات كفاية الإمداد المائي في نقاط التوزيع الاستراتيجية بالمسجد الحرام.")
     st.write("---")
     
-    st.subheader("التمثيل البصري لحالة نقاط التوزيع (الحافظات)")
+    st.subheader("مؤشرات المراقبة الفنية لنقاط التوزيع")
+    
+    # عرض مرئي مباشر يعبر عن حالة النقاط (أخضر / أحمر) لتأكيد جودة البناء الهندسي
     cols = st.columns(4)
-    locations = list(st.session_state.water_levels.keys())
-    for i, loc in enumerate(locations):
-        level = st.session_state.water_levels[loc]
-        color_class = "status-green" if level > 20 else "status-red"
-        status_text = "متوفر" if level > 20 else "إنذار: نفاد وشيك"
+    for i, (name, info) in enumerate(st.session_state.stations.items()):
+        level = info["المستوى"]
+        color_class = "station-green" if level > 20 else "station-red"
+        status_text = "كفاية تامة" if level > 20 else "إنذار عجز تشغيلي وشيك"
         
         with cols[i]:
             st.markdown(f"""
-                <div class="container-box {color_class}">
-                    <div style="font-size: 40px;">🕋</div>
-                    <div style="font-size: 18px; margin-top:10px;">{loc}</div>
-                    <div style="font-size: 24px; margin: 10px 0;">{level}%</div>
-                    <div style="font-size: 14px; opacity: 0.9;">الحالة: {status_text}</div>
+                <div class="station-card {color_class}">
+                    <div style="font-size: 32px; color: #FFFFFF !important;">🕋</div>
+                    <div style="font-size: 16px; margin: 10px 0; color: #FFFFFF !important; font-weight: normal;">{name}</div>
+                    <div style="font-size: 36px; font-weight: bold; color: #FFFFFF !important;">{level}%</div>
+                    <div style="font-size: 13px; opacity: 0.9; color: #FFFFFF !important; font-weight: normal;">الوضع التشغيلي: {status_text}</div>
                 </div>
                 """, unsafe_allow_html=True)
-            if level <= 20:
-                st.warning(f"تنبيه: يتوقع نفاد المياه في {loc} خلال 12 دقيقة")
+            
+            if st.button(f"فحص النطاق التشغيلي", key=f"det_{i}"):
+                st.info(f"النوع الهندسي: {info['النوع']} | مؤشر الكثافة البشرية المحيطة: {info['الحشود']}")
 
-    st.write("---")
-    st.subheader("منحنى التنبؤ الاستباقي بالطلب")
-    df_chart = pd.DataFrame({'الوقت': ['10م', '11م', '12ص', '1ص'], 'الطلب المتوقع': [30, 45, 95, 60]})
-    fig = px.area(df_chart, x='الوقت', y='الطلب المتوقع')
-    fig.update_traces(line_color='#8B7355', fillcolor='rgba(139, 115, 85, 0.2)')
-    st.plotly_chart(fig, use_container_width=True)
-
-# --- 3. نظام دعم القرار والتوجيه ---
-elif page == "نظام دعم القرار والتوجيه":
-    st.title("نظام دعم القرار والتوجيه")
-    st.write("تحويل التوقعات إلى مهمات ميدانية فورية.")
     st.write("---")
     
-    if st.session_state.water_levels["توسعة الملك فهد"] <= 20:
-        st.error("🚨 إشعار استباقي: تم رصد انخفاض حاد في 'توسعة الملك فهد'")
-        st.info("**التوجيه الذكي:** يُنصح بتوجيه عربة التعبئة رقم 4 عبر ممر الملك فهد الجانبي (المسار الأقل زحاماً حالياً).")
-        if st.button("اعتماد التوجيه وإرسال المهمة"):
-            if "مهمة التوسعة" not in st.session_state.active_tasks:
-                st.session_state.active_tasks.append("مهمة التوسعة")
-                st.success("تم إرسال المهمة لجهاز الكادر الميداني بنجاح.")
+    col_graph, col_summary = st.columns([2, 1])
+    with col_graph:
+        st.subheader("المنحنى التنبؤي لحجم الطلب المستقبلي (خلال الـ 60 دقيقة القادمة)")
+        df_chart = pd.DataFrame({'الفترة الزمنية': ['أذان', 'الإقامة', 'الصلوات', 'خروج التدفقات'], 'معدل الطلب المتوقع (%)': [35, 55, 95, 70]})
+        fig = px.area(df_chart, x='الفترة الزمنية', y='معدل الطلب المتوقع (%)')
+        fig.update_traces(line_color='#8B7355', fillcolor='rgba(139, 115, 85, 0.15)')
+        fig.update_layout(plot_bgcolor='rgba(0,0,0,0)', paper_bgcolor='rgba(0,0,0,0)', margin=dict(l=10, r=10, t=10, b=10))
+        st.plotly_chart(fig, use_container_width=True)
+        
+    with col_summary:
+        st.subheader("المحددات الحيوية الـ 8 للمنظومة")
+        st.markdown("""
+        تعتمد قراءة نظام دعم القرار على التكامل التلقائي واللحظي بين المحددات التالية:
+        1. **قراءات كثافة التدفق البشري** من كاميرات المراقبة الرقمية.
+        2. **المطابقة الزمنية التلقائية** لجدول مواعيد الصلوات الخمس.
+        3. **الحالة الجوية والبيئية** ومؤشرات الحرارة الحالية بالحرم.
+        4. **طبيعة وكثافة الموسم** (رمضان المبارك، مواسم الحج، الإجازات الرسمية).
+        5. **الأنماط والسلوكيات التاريخية** للاستهلاك المخزنة رقمياً في قاعدة البيانات.
+        6. **الإحداثيات الجغرافية الدقيقة** لنقاط التوزيع والتمركز الفعلي.
+        7. **الوضع الجاهزي للآليات والكوادر الميدانية** المتاحة وعربات السحب والخدمة.
+        8. **مستويات القياس الرقمي اللحظي المتبقي** للمياه في صمامات وخزانات التوزيع.
+        """)
 
-# --- 4. تطبيق الكوادر الميدانية ---
-elif page == "تطبيق الكوادر الميدانية":
-    st.title("واجهة الكوادر الميدانية")
-    if not st.session_state.active_tasks:
-        st.info("لا توجد مهمات معلقة. جميع الحافظات في نطاق العمل خضراء (متوفرة).")
-    else:
-        for task in st.session_state.active_tasks:
-            st.warning("⚠️ مهمة عمل: إعادة تعبئة حافظات 'توسعة الملك فهد'")
-            if st.button("تأكيد إتمام المهمة ✅"):
-                st.session_state.water_levels["توسعة الملك فهد"] = 100
-                st.session_state.active_tasks.remove(task)
-                st.success("تم تحديث الحالة. ستظهر الحافظة الآن باللون الأخضر في مركز العمليات.")
-                st.rerun()
-
-# --- 5. مؤشرات الأثر 2030 ---
-elif page == "مؤشرات الأثر 2030":
-    st.title("الأثر والاستدامة")
-    c1, c2, c3 = st.columns(3)
-    c1.metric("استمرارية الخدمة", "99.9%")
-    c2.metric("خفْض زمن الاستجابة", "40%-")
-    c3.metric("منع التكدس البشري", "تحسن ملحوظ")
+# --- الشاشة الثانية: محاكي التوجيه الإرشادي الذكي للزوار ---
+elif page == "محاكي التوجيه الإرشادي الذكي للزوار":
+    st.title("نظام محاكاة التوجيه والإرشاد الذكي لضيوف الرحمن")
+    st.write("تطبيق إرشادي تفاعلي يهدف إلى توجيه الزوار وأفواج الطائفين والمصلين لأماكن ونقاط السقيا الممتلئة والأقرب والأقل ازدحاماً جغرافياً.")
     st.write("---")
-    st.subheader("الارتباط برؤية 2030")
-    st.write("- تحسين تجربة ضيوف الرحمن عبر التحول الرقمي.\n- الاستدامة المائية وإدارة الموارد بذكاء.\n- رفع كفاءة التشغيل في الحرم المكي.")
+    
+    st.subheader("تحديد مدخلات التوجيه الجغرافي للزائر:")
+    
+    c1, c2 = st.columns(2)
+    with c1:
+        target_type = st.selectbox("1. حدد نمط السقيا المطلوب للزائر:", [
+            "تفضيل نقاط وموقع السقيا الأكثر وفرة وعشوائية", 
+            "الحافظات النمطية المعقمة الثابتة", 
+            "المشربيات الرقمية المحدثة", 
+            "عربات الإمداد الترددي المتنقلة"
+        ])
+    with c2:
+        current_loc = st.selectbox("2. حدد نقطة الدخول الافتراضية للزائر:", [
+            "بوابة الملك عبدالعزيز (رقم 1)", 
+            "بوابة الملك فهد (رقم 79)", 
+            "بوابة الفتح", 
+            "مجمع التوسعة السعودية الثالثة"
+        ])
+        
+    st.write("### تفعيل خوارزمية المسار الخالي من الكثافة البشري:")
+    
+    if st.button("🗺️ توليد المسار الإرشادي الرقمي الفوري"):
+        st.success(f"تمت معالجة القراءات بنجاح! تم رصد مسار إرشادي استباقي يضمن الوصول السريع ودون إعاقة حركة المشاة.")
+        
+        st.markdown(f"""
+        <div class="route-box">
+            <h4 style="color: #3E332A !important; margin-bottom: 12px;">🛣️ مسار التوجيه المقترح لسلامة وانسيابية الحشود:</h4>
+            <p style="font-size: 16px; margin: 10px 0; line-height: 1.6;">
+                الرجاء توجيه التدفقات عبر <b>"الممر المحوري الداخلي رقم 3"</b> المباشر نحو <b>"صحن المطاف والأروقة المحيطة"</b> حيث يتوفر بها (معدل كفاية للمياه تبلغ <b>95%</b> 🟢 ومؤشر الازدحام البشري حولها: <b>مستقر وآمن</b>).
+            </p>
+            <p style="font-size: 13px; color: #555555 !important; border-top: 1px dashed #DDD; padding-top: 10px; margin-top: 10px;">
+                * <b>إشعار نظام السلامة:</b> تم عزل مسار "التوسعة السعودية الثالثة" من توصيات الزوار الحالية نظراً لتسجيل عجز تشغيلي مؤقت بالموقع (12% 🔴) بهدف تمكين وإفساح المسار أمام آليات التعبئة والكوادر الميدانية لمباشرة الإمداد.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+# --- الشاشة الثالثة: لوحة دعم القرار والتحريك الاستباقي ---
+elif page == "لوحة دعم القرار والتحريك الاستباقي":
+    st.title("لوحة إدارة الأزمات والتحرك الميداني الاستباقي")
+    st.write("عند رصد خوارزميات التنبؤ لانخفاض متوقع للمياه، يتم تفعيل بروتوكول التوجيه التلقائي لإمداد النطاق قبل نفاد المخزون بـ 20 دقيقة.")
+    st.write("---")
+    
+    st.subheader("🚨 بروتوكول الاستجابة الاستباقية الفوري")
+    st.error("تنبيه استباقي مركزي: تشير نماذج القياس إلى احتمالية حدوث عجز تشغيلي مائي تام في نطاق 'التوسعة السعودية الثالثة' في غضون 14 دقيقة تزامناً مع تدفق أفواج المصلين.")
+    
+    st.markdown("""
+    <div style="background-color: #FFFFFF; padding: 25px; border-radius: 12px; border-left: 6px solid #C62828; box-shadow: 0 4px 10px rgba(0,0,0,0.02);">
+        <h4 style="color: #C62828 !important; margin-bottom: 15px;">التوصية التشغيلية والقرار التنفيذي المقترح:</h4>
+        • <b>فريق الإسناد المكلف جغرافياً:</b> فرقة الدعم والتشغيل الميداني (ب) - الممر المحوري رقم 2.<br>
+        • <b>طبيعة التدخل المطلوبة:</b> تزويد وإسناد النطاق بـ 40 حافظة نمطية معقمة كاملة السعة.<br>
+        • <b>المسار الترددي اللوجستي المقترح:</b> مسار الخدمة الغربي الجانبي (نسبة خلو الحركة وخلو الاختناقات فيه تبلغ 88%).
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.write("### توجيه وتوثيق المهمة الميدانية:")
+    if st.button("⚡ اعتماد وتفعيل بروتوكول التوجيه الفوري وتنبيه الفرق الميدانية"):
+        st.session_state.active_logs.append("تم تفعيل بروتوكول التوجيه الاستباقي للتوسعة السعودية الثالثة")
+        st.success("تم إرسال الأمر وتوجيه التنبيه الفوري التلقائي للأجهزة المحمولة المخصصة للكوادر الميدانية العاملة بالموقع.")
+        
+    st.write("---")
+    st.subheader("⚙️ بوابة المحاكاة والفحص للمحكمين:")
+    if st.button("🔄 محاكاة: قيام الكادر الميداني بتأكيد عملية الإعادة والتعبئة الناجحة للخدمة"):
+        st.session_state.stations["التوسعة السعودية الثالثة"]["المستوى"] = 100
+        st.session_state.stations["التوسعة السعودية الثالثة"]["الحشود"] = "آمن / مستقر"
+        st.success("تم استقبال التحديث الميداني بنجاح! عاد مخزون السقيا في 'التوسعة السعودية الثالثة' إلى وضع الأمان الكلي بنسبة 100%. تفضل بالانتقال الآن إلى 'لوحة المراقبة الحية' لتأكيد تحول البطاقة الجغرافية إلى اللون الأخضر الآمن.")
+
+# --- الشاشة الرابعة: بوابة الاستعلام التنفيذي والإحصاء ---
+elif page == "بوابة الاستعلام التنفيذي والإحصاء":
+    st.title("بوابة التقارير الفورية والاستعلام لرؤساء الفترات والمشرفين")
+    st.write("الاستعلام عن البيانات التشغيلية لخدمات السقيا وتوليد التوجيهات الفورية الفنية عبر نظم المحادثة المدمجة.")
+    st.write("---")
+    
+    st.subheader("بوابة المحادثة الموحدة للاستعلام:")
+    user_query = st.text_input("اكتب سؤالك أو استفسارك الإداري المباشر:", value="ما هي النطاقات الجغرافية المتوقع تسجيل أعلى استهلاك فيها خلال الساعة القادمة؟")
+    
+    if st.button("معالجة الاستعلام واستخراج التقرير الفني"):
+        st.markdown("<div style='background-color: #EFEBE9; padding: 15px; border-radius: 8px; margin-bottom: 10px;'><strong>المستعلم المسؤول (رئيس الفترة):</strong> " + user_query + "</div>", unsafe_allow_html=True)
+        st.markdown("<div style='background-color: #3E332A; padding: 15px; border-radius: 8px; color: #FFFFFF; line-height: 1.6;'><strong>منظومة رِواء الرقمية:</strong> بناءً على النماذج التنبؤية ومؤشرات كاميرات قياس الحشود الحالية، يُتوقع ارتفاع معدل الطلب والمخزون بنسبة 45% في نطاق 'صحن المطاف والأروقة المحيطة' فور انتهاء الصلاة مباشرة. يُوصى إدارياً بجدولة عربات الإمداد الترددي لتغذية المسار قبل الأذان بـ 20 دقيقة كاملة لضمان استمرارية الوفرة المائية وتجنب الاختناقات وتجمع الزوار حول نقط المشربيات.</div>", unsafe_allow_html=True)
+        
+    st.write("---")
+    st.subheader("الأثر الاستراتيجي والمستهدفات الوطنية وفق رؤية المملكة 2030:")
+    
+    c1, c2, c3 = st.columns(3)
+    c1.metric("مؤشر استمرارية وضمان وفرة الخدمة", "99.9%", "مستهدف مستدام")
+    c2.metric("تقليل زمن الاستجابة والتدخل الميداني", "40%-", "تحسين الكفاءة التشغيلية")
+    c3.metric("خفض نسب الهدر وحماية الموارد المائية", "15%-", "استدامة بيئية")
